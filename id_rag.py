@@ -72,9 +72,55 @@ student_id = st.text_input("学籍番号を半角で入力してエンターを�
 select_model = "gpt-4o"
 select_temperature = 0.0
 
+hide_streamlit_style = """
+                <style>
+                div[data-testid="stToolbar"] {
+                visibility: hidden;
+                height: 0%;
+                position: fixed;
+                }
+                div[data-testid="stDecoration"] {
+                visibility: hidden;
+                height: 0%;
+                position: fixed;
+                }
+                div[data-testid="stStatusWidget"] {
+                visibility: hidden;
+                height: 0%;
+                position: fixed;
+                }
+                #MainMenu {
+                visibility: hidden;
+                height: 0%;
+                }
+                header {
+                visibility: hidden;
+                height: 0%;
+                }
+                footer {
+                visibility: hidden;
+                height: 0%;
+                }
+                </style>
+                """
+st.markdown(hide_streamlit_style, unsafe_allow_html=True)
+
 if student_id:
     if not firebase_admin._apps:
-        cred = credentials.Certificate('rag-course-84ec8-firebase-adminsdk-ftxi5-e847a47ba1.json') 
+        private_key = st.secrets["private_key"].replace('\\n', '\n')
+        cred = credentials.Certificate({
+              "type": "service_account",
+              "project_id": "rag-course-84ec8",
+              "private_key_id": "b77024ca9b5ca091d98426086fe853e1e59b0e5b",
+              "private_key": private_key,
+              "client_email": "firebase-adminsdk-ftxi5@rag-course-84ec8.iam.gserviceaccount.com",
+              "client_id": "114649836913124972481",
+              "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+              "token_uri": "https://oauth2.googleapis.com/token",
+              "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+              "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-ftxi5%40rag-course-84ec8.iam.gserviceaccount.com",
+              "universe_domain": "googleapis.com"
+        }) 
         default_app = firebase_admin.initialize_app(cred)
     db = firestore.client()
     
@@ -148,8 +194,9 @@ if student_id:
                 message(st.session_state.generated[i], key=str(key_generated), avatar_style="micah")
                 
         with st.container():
-            if st.session_state.count == 3:
-                st.write("3 turns completed. Please proceed to the next step.")
+            if st.session_state.count >= 5:
+                html_link = '<a href="https://nagoyapsychology.qualtrics.com/jfe/form/SV_eEVBQ7a0d8iVvq6" target="_blank">これで会話は終了です。こちらをクリックしてアンケートに回答してください。</a>'
+                st.markdown(html_link, unsafe_allow_html=True)
             else:
                 user_message = st.text_input("内容を入力して送信ボタンを押してください", key="user_message")
                 st.button("送信", on_click=on_input_change)
@@ -180,35 +227,3 @@ if student_id:
         st.error(f"No vector database found for student ID {student_id}.")
 
 
-hide_streamlit_style = """
-                <style>
-                div[data-testid="stToolbar"] {
-                visibility: hidden;
-                height: 0%;
-                position: fixed;
-                }
-                div[data-testid="stDecoration"] {
-                visibility: hidden;
-                height: 0%;
-                position: fixed;
-                }
-                div[data-testid="stStatusWidget"] {
-                visibility: hidden;
-                height: 0%;
-                position: fixed;
-                }
-                #MainMenu {
-                visibility: hidden;
-                height: 0%;
-                }
-                header {
-                visibility: hidden;
-                height: 0%;
-                }
-                footer {
-                visibility: hidden;
-                height: 0%;
-                }
-                </style>
-                """
-st.markdown(hide_streamlit_style, unsafe_allow_html=True)
